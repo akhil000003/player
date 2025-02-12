@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .video-container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+        }
+        .controls {
+          display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .controls button {
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container video-container">
+        <video id="videoPlayer" class="w-100" controls autoplay muted></video>
+        <div class="controls">
+            <button id="prevBtn" class="btn btn-primary">Previous</button>
+            <button id="playPauseBtn" class="btn btn-success">Play</button>
+            <button id="nextBtn" class="btn btn-primary">Next</button>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        const videoPlayer = document.getElementById('videoPlayer');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        let videos = [];
+        let currentVideoIndex = 0;
+
+        // Fetch video files from the media folder
+        $.ajax({
+            url: 'media/',
+            success: function(data) {
+                $(data).find('a').attr('href', function(i, val) {
+                    if(val.match(/\.(mp4)$/)) {
+                        videos.push(val);
+                    }
+                });
+                if(videos.length > 0) {
+                    loadVideo(currentVideoIndex);
+                } else {
+                    alert('No video files found in the media folder.');
+                }
+            },
+            error: function() {
+                alert('Error accessing the media folder.');
+            }
+        });
+
+        function loadVideo(index) {
+            videoPlayer.src = 'media/' + videos[index];
+            videoPlayer.play();
+            playPauseBtn.textContent = 'Pause';
+        }
+
+        playPauseBtn.addEventListener('click', function() {
+            if(videoPlayer.paused) {
+                videoPlayer.play();
+                playPauseBtn.textContent = 'Pause';
+            } else {
+                videoPlayer.pause();
+                playPauseBtn.textContent = 'Play';
+            }
+        });
+
+        prevBtn.addEventListener('click', function() {
+            if(currentVideoIndex > 0) {
+                currentVideoIndex--;
+                loadVideo(currentVideoIndex);
+            }
+        });
+
+        nextBtn.addEventListener('click', function() {
+            if(currentVideoIndex < videos.length - 1) {
+                currentVideoIndex++;
+                loadVideo(currentVideoIndex);
+            }
+        });
+    </script>
+</body>
+</html>
