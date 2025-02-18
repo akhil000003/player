@@ -27,7 +27,6 @@
             height: 10px;
             background-color: #e9ecef;
             border-radius: 5px;
-            hidden;
         }
 
         .progress-bar {
@@ -55,7 +54,7 @@
         <div class="row justify-content-center">
             <div class="player-ui">
                 <div class="video-container">
-                    <video id="videoPlayer" class="w-100" control s></video>
+                    <video id="videoPlayer" class="w-100" controls></video>
                 </div>
                 <div class="progress-container">
                     <div class="progress">
@@ -130,6 +129,11 @@
 
         videoPlayer.addEventListener('loadedmetadata', () => {
             totalTimeDisplay.textContent = formatTime(videoPlayer.duration);
+        });
+
+        videoPlayer.addEventListener('ended', () => {
+            currentVideoIndex = (currentVideoIndex + 1) % videos.length;
+            loadVideo(currentVideoIndex);
         });
 
         // Load the first video initially
