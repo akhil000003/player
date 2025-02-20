@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Player</title>
+    <title>Player</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
@@ -16,11 +16,11 @@
         position: relative;
     }
     .logo {
-    width: 100px;
-    position: absolute;
-    right: 0;
-    padding: 6px 90px;
-}
+        width: 100px;
+        position: absolute;
+        right: 0;
+        padding: 6px 90px;
+    }
     
     .video-container video {
         max-width: 40%;
@@ -43,6 +43,8 @@
         height: 4px;
         background-color: #3d3d3d;
         border-radius: 3px;
+        position: relative;
+        cursor: pointer;
     }
 
     .progress-bar {
@@ -50,6 +52,7 @@
         background-color: #3eccf1;
         width: 0px;
         border-radius: 3px;
+        transition: width 0.3s ease;
     }
 
     .time-display {
@@ -65,7 +68,6 @@
         padding: 10px;
         border-radius: 30px;
         transition: 0.08s ease-in-out;
-        
     }
 
     .player-ui:hover {
@@ -77,15 +79,14 @@
         margin: -10px 0px;
     }
     .controls2 {
-    text-align: right;
-    margin-top: -60px;
-    padding-right: 40px;
-    padding-left: 40px;
-    max-width: 50%;
-    right: 0;
-    position: absolute;
-    /* background: #ffffff1c; */
-}
+        text-align: right;
+        margin-top: -60px;
+        padding-right: 40px;
+        padding-left: 40px;
+        max-width: 50%;
+        right: 0;
+        position: absolute;
+    }
     .btn {
         padding: 10px;
         border-radius: 100%;
@@ -105,39 +106,30 @@
     }
     .btn:hover {
         transition: 0.1s ease-in-out;
-        /* background: #ffffff12; */
     }
-
 </style>
 </head>
 <body style="background: #323232;">
     <div class="container">
         <div class="row justify-content-center">
             <div class="player-ui">
-
                 <div class="video-container">
-                    <img class="logo" src="logo.png"></img>
-                    <video id="videoPlayer" class="w-100" control s></video>
-                        <div class="controls2">
-                            <button id="prevBtn" class="btn btn-primary"><i class="fas fa-backward"></i></button>
-                            <button id="playPauseBtn" class="btn btn-success"><i class="fas fa-play"></i></button>
-                            <button id="nextBtn" class="btn btn-primary"><i class="fas fa-forward"></i></button>
-                        </div>
+                    <img class="logo" src="logo.png" alt="Logo">
+                    <video id="videoPlayer" class="w-100" contr ols></video>
+                    <div class="controls2">
+                        <button id="prevBtn" class="btn btn-primary"><i class="fas fa-backward"></i></button>
+                        <button id="playPauseBtn" class="btn btn-success"><i class="fas fa-play"></i></button>
+                        <button id="nextBtn" class="btn btn-primary"><i class="fas fa-forward"></i></button>
+                    </div>
                 </div>
-
                 <div class="progress-container">
-                    <div class="progress">
+                    <div class="progress" id="progressContainer">
                         <div id="progressBar" class="progress-bar"></div>
                     </div>
                     <div class="time-display">
-                        <span id="totalTime">0:00</span> / <span id="currentTime">0:00</span>
+                        <span id="currentTime">0:00</span> / <span id="totalTime">0:00</span>
                     </div>
                 </div>
-                <!-- <div class="controls mt-3 text-center">
-                    <button id="prevBtn" class="btn btn-primary"><i class="fas fa-backward"></i></button>
-                    <button id="playPauseBtn" class="btn btn-success"><i class="fas fa-play"></i></button>
-                    <button id="nextBtn" class="btn btn-primary"><i class="fas fa-forward"></i></button>
-                </div> -->
             </div>
         </div>
     </div>
@@ -149,6 +141,7 @@
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
         const progressBar = document.getElementById('progressBar');
+        const progressContainer = document.getElementById('progressContainer');
         const currentTimeDisplay = document.getElementById('currentTime');
         const totalTimeDisplay = document.getElementById('totalTime');
 
@@ -205,21 +198,28 @@
             loadVideo(currentVideoIndex);
         });
 
+        progressContainer.addEventListener('click', (e) => {
+            const rect = progressContainer.getBoundingClientRect();
+            const offsetX = e.clientX - rect.left;
+            const newTime = (offsetX / rect.width) * videoPlayer.duration;
+            videoPlayer.currentTime = newTime;
+        });
+
         // Load the first video initially
         loadVideo(currentVideoIndex);
     </script>
 
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    }, error => {
-                        console.log('ServiceWorker registration failed: ', error);
-                    });
-            });
-        }
-    </script>
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, error => {
+                    console.log('ServiceWorker registration failed: ', error);
+                });
+        });
+    }
+</script>
 </body>
 </html>
