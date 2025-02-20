@@ -62,12 +62,20 @@
 
     .player-ui {
         background-color: #323232;
-        box-shadow: 0px 0px 60px -20px #7292bf;
+        box-shadow: 0px 20px 0px -10px #3d3d3d;
         margin: auto;
         max-width: 500px;
         padding: 10px;
         border-radius: 30px;
         transition: 0.08s ease-in-out;
+        border: solid 1px #ffffff33;
+    }
+    
+    .shadow2 {
+        box-shadow: 0px 50px 0px -30px #373737;
+        border-radius: 50px;
+        max-width: 500px;
+        margin: auto;
     }
 
     .player-ui:hover {
@@ -111,7 +119,7 @@
 </head>
 <body style="background: #323232;">
     <div class="container">
-        <div class="row justify-content-center">
+        <div class="row justify-content-center shadow2">
             <div class="player-ui">
                 <div class="video-container">
                     <img class="logo" src="logo.png" alt="Logo">
