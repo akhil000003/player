@@ -1,6 +1,6 @@
 {
     "name": "🍌 Player",
-    "short_name": "VideoPlayer",
+    "short_name": "🍌Player",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
