@@ -1,233 +1,115 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🍺 Player</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <link rel="manifest" href="manifest.json">
-<style>
-    .container {
-        margin-top: 0px;
-    }
-    .video-container {
-        border: solid 0px;
-        position: relative;
-    }
-    .logo {
-        width: 100px;
-        position: absolute;
-        right: 0;
-        padding: 6px 90px;
-    }
-    
-    .video-container video {
-        max-width: 40%;
-        height: 105px;
-        border-radius: 20px;
-    }
+ <meta charset="UTF-8">
+ <title>Locations</title>
+ <style>
+ body {
+ font-family: Arial, sans-serif;
+ margin: 20px;
+ }
+ .container {
+ max-height: 400px;
+ overflow-y: auto;
+ border: 1px solid #ccc;
+ padding: 10px;
+ display: flex;
+ flex-direction: column-reverse;
+ max-width: 50%;
+ }
+ .location {
+ display: flex;
+ align-items: center;
+ margin: 20px 0;
 
-    .progress-container {
-        margin-top: 10px;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        color: #fff;
-        padding-left: 10px;
-        padding-right: 10px;
-    }
+ background: antiquewhite;
 
-    .progress {
-        flex-grow: 1;
-        height: 4px;
-        background-color: #3d3d3d;
-        border-radius: 3px;
-        position: relative;
-        cursor: pointer;
-    }
 
-    .progress-bar {
-        height: 100%;
-        background-color: #3eccf1;
-        width: 0px;
-        border-radius: 3px;
-        transition: width 0.3s linear;
-    }
-
-    .time-display {
-        margin-left: 10px;
-        white-space: nowrap;
-    }
-
-    .player-ui {
-        background-color: #323232;
-        box-shadow: 0px 20px 0px -10px #3d3d3d;
-        margin: auto;
-        max-width: 500px;
-        padding: 10px;
-        border-radius: 30px;
-        transition: 0.08s ease-in-out;
-        border: solid 1px #ffffff33;
-    }
-    
-    .shadow2 {
-        box-shadow: 0px 50px 0px -30px #373737;
-        border-radius: 50px;
-        max-width: 500px;
-        margin: auto;
-    }
-
-    .player-ui:hover {
-        transform: scale(1);
-        transition: 0.1s ease-in-out;
-    }
-    .controls {
-        text-align: center;
-        margin: -10px 0px;
-    }
-    .controls2 {
-        text-align: right;
-        margin-top: -60px;
-        padding-right: 40px;
-        padding-left: 40px;
-        max-width: 50%;
-        right: 0;
-        position: absolute;
-    }
-    .btn {
-        padding: 10px;
-        border-radius: 100%;
-        width: 60px;
-        height: 60px;
-        border: 0;
-        background: #00000002;
-        color: #fff;
-    }
-    .btn i {
-        font-size: 24px;
-        transition: 0.1s ease-in-out;
-    }
-    .btn i:hover {
-        transform: scale(1.2);
-        transition: 0.1s ease-in-out;
-    }
-    .btn:hover {
-        transition: 0.1s ease-in-out;
-    }
-</style>
+ }
+ .dot {
+ width: 16px;
+ height: 16px;
+ border-radius: 50%;
+ border: 2px solid #333;
+ margin-right: 10px;
+ background-color: white;
+     margin: 0px 20px;
+ }
+ .dot.filled {
+ background-color: green;
+ }
+ </style>
 </head>
-<body style="background: #323232;">
-    <div class="container">
-        <div class="row justify-content-center shadow2">
-            <div class="player-ui">
-                <div class="video-container">
-                    <img class="logo" src="logo.png" alt="Logo">
-                    <video id="videoPlayer" class="w-100" contr ols></video>
-                    <div class="controls2">
-                        <button id="prevBtn" class="btn btn-primary"><i class="fas fa-backward"></i></button>
-                        <button id="playPauseBtn" class="btn btn-success"><i class="fas fa-play"></i></button>
-                        <button id="nextBtn" class="btn btn-primary"><i class="fas fa-forward"></i></button>
-                    </div>
-                </div>
-                <div class="progress-container">
-                    <div class="progress" id="progressContainer">
-                        <div id="progressBar" class="progress-bar"></div>
-                    </div>
-                    <div class="time-display">
-                        <span id="currentTime">0:00</span> / <span id="totalTime">0:00</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script>
-        const videoPlayer = document.getElementById('videoPlayer');
-        const playPauseBtn = document.getElementById('playPauseBtn');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const progressBar = document.getElementById('progressBar');
-        const progressContainer = document.getElementById('progressContainer');
-        const currentTimeDisplay = document.getElementById('currentTime');
-        const totalTimeDisplay = document.getElementById('totalTime');
+<body>
+ <h2>Locations</h2>
+ <div class="ok">
+ <div class="container" id="locationList"></div>
+</div>
 
-        const videos = ['sample1.mp4', 'sample2.mp4', 'sample3.mp4', 'sample4.mp4']; // Add your video files here
-        let currentVideoIndex = 0;
+ <script>
+ const locations = [{'name': 'MG Road', 'lat': 12.9756, 'lng': 77.605}, {'name': 'Koramangala', 'lat': 12.9352, 'lng': 77.6145}, {'name': 'Indiranagar', 'lat': 12.9719, 'lng': 77.6412}, {'name': 'Jayanagar', 'lat': 12.925, 'lng': 77.5938}, {'name': 'Malleshwaram', 'lat': 13.0033, 'lng': 77.568}, {'name': 'HSR Layout', 'lat': 12.9121, 'lng': 77.6446}, {'name': 'Rajajinagar', 'lat': 12.9916, 'lng': 77.552}, {'name': 'BTM Layout', 'lat': 12.9166, 'lng': 77.6101}, {'name': 'Hebbal', 'lat': 13.0358, 'lng': 77.597}, {'name': 'Vidhana Soudha', 'lat': 12.9794, 'lng': 77.5911}, {'name': 'Cubbon Park', 'lat': 12.9763, 'lng': 77.5929}, {'name': 'Lalbagh Botanical Garden', 'lat': 12.9507, 'lng': 77.5848}, {'name': 'Bangalore Palace', 'lat': 12.9987, 'lng': 77.5921}, {'name': 'Bannerghatta National Park', 'lat': 12.8, 'lng': 77.577}, {'name': "Tipu Sultan's Summer Palace", 'lat': 12.9592, 'lng': 77.5736}, {'name': 'Nandi Hills', 'lat': 13.3702, 'lng': 77.6835}, {'name': 'ISKCON Temple', 'lat': 13.0094, 'lng': 77.5511}, {'name': 'Church Street', 'lat': 12.9752, 'lng': 77.607}, {'name': 'Commercial Street', 'lat': 12.9812, 'lng': 77.6088}, {'name': 'Ulsoor Lake', 'lat': 12.9843, 'lng': 77.619}, {'name': 'Brigade Road', 'lat': 12.9738, 'lng': 77.6124}, {'name': 'Chinnaswamy Stadium', 'lat': 12.9788, 'lng': 77.5998}, {'name': 'UB City', 'lat': 12.9716, 'lng': 77.5952}, {'name': 'Phoenix Marketcity', 'lat': 12.9965, 'lng': 77.696}, {'name': 'Orion Mall', 'lat': 13.0116, 'lng': 77.5547}, {'name': 'Mantri Square', 'lat': 12.9935, 'lng': 77.5704}, {'name': 'Garuda Mall', 'lat': 12.9719, 'lng': 77.6094}, {'name': 'Forum Mall', 'lat': 12.9345, 'lng': 77.6115}, {'name': 'M.G. Road Metro Station', 'lat': 12.9756, 'lng': 77.605}, {'name': 'Yeshwanthpur', 'lat': 13.0285, 'lng': 77.5405}, {'name': 'KR Market', 'lat': 12.9592, 'lng': 77.577}, {'name': 'Majestic', 'lat': 12.9784, 'lng': 77.5714}, {'name': 'Shivajinagar', 'lat': 12.9843, 'lng': 77.605}, {'name': 'Electronic City', 'lat': 12.839, 'lng': 77.677}, {'name': 'Sarjapur Road', 'lat': 12.9081, 'lng': 77.665}, {'name': 'Marathahalli', 'lat': 12.9563, 'lng': 77.7011}, {'name': 'Bellandur', 'lat': 12.926, 'lng': 77.6762}, {'name': 'Kalyan Nagar', 'lat': 13.0196, 'lng': 77.642}, {'name': 'Kammanahalli', 'lat': 13.0196, 'lng': 77.642}, {'name': 'Frazer Town', 'lat': 12.9916, 'lng': 77.619}, {'name': 'Richmond Town', 'lat': 12.9666, 'lng': 77.6}, {'name': 'Basavanagudi', 'lat': 12.9416, 'lng': 77.5736}, {'name': 'JP Nagar', 'lat': 12.9066, 'lng': 77.585}, {'name': 'Banashankari', 'lat': 12.925, 'lng': 77.546}, {'name': 'Vijayanagar', 'lat': 12.9696, 'lng': 77.536}, {'name': 'Nagarbhavi', 'lat': 12.9596, 'lng': 77.52}, {'name': 'Kengeri', 'lat': 12.92, 'lng': 77.48}, {'name': 'Rajarajeshwari Nagar', 'lat': 12.92, 'lng': 77.52}, {'name': 'Jalahalli', 'lat': 13.05, 'lng': 77.53}];
 
-        function loadVideo(index) {
-            videoPlayer.src = videos[index];
-            videoPlayer.load();
-            videoPlayer.play();
-        }
+ const container = document.getElementById("locationList");
 
-        function formatTime(seconds) {
-            const minutes = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
-        }
+ locations.forEach((loc, index) => {
+ const div = document.createElement("div");
+ div.className = "location";
+ div.id = `location-${index}`;
+ div.innerHTML = `<div class="dot" id="dot-${index}"></div> <div>${index} <br/> ${loc.name}</div>`;
+ container.appendChild(div);
+ });
 
-        playPauseBtn.addEventListener('click', () => {
-            if (videoPlayer.paused) {
-                videoPlayer.play();
-                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-            } else {
-                videoPlayer.pause();
-                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-            }
-        });
+ function getDistance(lat1, lon1, lat2, lon2) {
+ const R = 6371e3;
+ const φ1 = lat1 * Math.PI / 180;
+ const φ2 = lat2 * Math.PI / 180;
+ const Δφ = (lat2 - lat1) * Math.PI / 180;
+ const Δλ = (lon2 - lon1) * Math.PI / 180;
 
-        prevBtn.addEventListener('click', () => {
-            currentVideoIndex = (currentVideoIndex - 1 + videos.length) % videos.length;
-            loadVideo(currentVideoIndex);
-        });
+ const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+ Math.cos(φ1) * Math.cos(φ2) *
+ Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+ const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-        nextBtn.addEventListener('click', () => {
-            currentVideoIndex = (currentVideoIndex + 1) % videos.length;
-            loadVideo(currentVideoIndex);
-        });
+ return R * c;
+ }
 
-        videoPlayer.addEventListener('timeupdate', () => {
-            const progress = (videoPlayer.currentTime / videoPlayer.duration) * 100;
-            progressBar.style.width = `${progress}%`;
-            progressBar.setAttribute('aria-valuenow', progress);
+ function snapToNearestLocation(userLat, userLng) {
+ let nearestIndex = -1;
+ let minDistance = Infinity;
 
-            currentTimeDisplay.textContent = formatTime(videoPlayer.currentTime);
-            totalTimeDisplay.textContent = formatTime(videoPlayer.duration);
-        });
+ locations.forEach((loc, index) => {
+ const dist = getDistance(userLat, userLng, loc.lat, loc.lng);
+ if (dist < minDistance) {
+ minDistance = dist;
+ nearestIndex = index;
+ }
+ });
 
-        videoPlayer.addEventListener('loadedmetadata', () => {
-            totalTimeDisplay.textContent = formatTime(videoPlayer.duration);
-        });
+ if (nearestIndex !== -1) {
+ document.querySelectorAll(".dot").forEach(dot => dot.classList.remove("filled"));
+ const nearestDot = document.getElementById(`dot-${nearestIndex}`);
+ nearestDot.classList.add("filled");
 
-        videoPlayer.addEventListener('ended', () => {
-            currentVideoIndex = (currentVideoIndex + 1) % videos.length;
-            loadVideo(currentVideoIndex);
-        });
+ const nearestLocation = document.getElementById(`location-${nearestIndex}`);
+ nearestLocation.scrollIntoView({ behavior: "smooth", block: "center" });
+ }
+ }
 
-        progressContainer.addEventListener('click', (e) => {
-            const rect = progressContainer.getBoundingClientRect();
-            const offsetX = e.clientX - rect.left;
-            const newTime = (offsetX / rect.width) * videoPlayer.duration;
-            videoPlayer.currentTime = newTime;
-        });
+if (navigator.geolocation) {
+  setInterval(() => {
+    navigator.geolocation.getCurrentPosition(position => {
+      const { latitude, longitude } = position.coords;
+      snapToNearestLocation(latitude, longitude);
+    }, error => {
+      console.error("Geolocation error:", error);
+    });
+  }, 2000); // 2000 milliseconds = 2 seconds
+} else {
+  alert("Geolocation is not supported by this browser.");
+}
 
-        // Load the first video initially
-        loadVideo(currentVideoIndex);
-    </script>
-
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/service-worker.js')
-                .then(registration => {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                }, error => {
-                    console.log('ServiceWorker registration failed: ', error);
-                });
-        });
-    }
-</script>
+ </script>
 </body>
 </html>
