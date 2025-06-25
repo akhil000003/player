@@ -1,0 +1,234 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍺 Player</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+<style>
+    .container {
+        margin-top: 0px;
+    }
+    .video-container {
+        border: solid 0px;
+        position: relative;
+    }
+    .logo {
+        width: 100px;
+        position: absolute;
+        right: 0;
+        padding: 6px 90px;
+    }
+    
+    .video-container video {
+        max-width: 40%;
+        height: 105px;
+        border-radius: 20px;
+    }
+
+    .progress-container {
+        margin-top: 10px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        color: #fff;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .progress {
+        flex-grow: 1;
+        height: 4px;
+        background-color: #3d3d3d;
+        border-radius: 3px;
+        position: relative;
+        cursor: pointer;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background-color: #3eccf1;
+        width: 0px;
+        border-radius: 3px;
+        transition: width 0.3s linear;
+    }
+
+    .time-display {
+        margin-left: 10px;
+        white-space: nowrap;
+    }
+
+    .player-ui {
+        background-color: #323232;
+        box-shadow: 0px 20px 0px -10px #3d3d3d;
+        margin: auto;
+        max-width: 500px;
+        padding: 10px;
+        border-radius: 30px;
+        transition: 0.08s ease-in-out;
+        border: solid 1px #ffffff33;
+    }
+    
+    .shadow2 {
+        box-shadow: 0px 50px 0px -30px #373737;
+        border-radius: 50px;
+        max-width: 500px;
+        margin: auto;
+    }
+
+    .player-ui:hover {
+        transform: scale(1);
+        transition: 0.1s ease-in-out;
+    }
+    .controls {
+        text-align: center;
+        margin: -10px 0px;
+    }
+    .controls2 {
+        text-align: right;
+        margin-top: -60px;
+        padding-right: 40px;
+        padding-left: 40px;
+        max-width: 50%;
+        right: 0;
+        position: absolute;
+    }
+    .btn {
+        padding: 10px;
+        border-radius: 100%;
+        width: 60px;
+        height: 60px;
+        border: 0;
+        background: #00000002;
+        color: #fff;
+    }
+    .btn i {
+        font-size: 24px;
+        transition: 0.1s ease-in-out;
+    }
+    .btn i:hover {
+        transform: scale(1.2);
+        transition: 0.1s ease-in-out;
+    }
+    .btn:hover {
+        transition: 0.1s ease-in-out;
+    }
+</style>
+</head>
+<body style="background: #323232;">
+    <div class="container">
+        <div class="row justify-content-center shadow2">
+            <div class="player-ui">
+                <div class="video-container">
+                    <img class="logo" src="logo.png" alt="Logo">
+                    <video id="videoPlayer" class="w-100" contr ols></video>
+                    <div class="controls2">
+                        <button id="prevBtn" class="btn btn-primary"><i class="fas fa-backward"></i></button>
+                        <button id="playPauseBtn" class="btn btn-success"><i class="fas fa-play"></i></button>
+                        <button id="nextBtn" class="btn btn-primary"><i class="fas fa-forward"></i></button>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress" id="progressContainer">
+                        <div id="progressBar" class="progress-bar"></div>
+                    </div>
+                    <div class="time-display">
+                        <span id="currentTime">0:00</span> / <span id="totalTime">0:00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const videoPlayer = document.getElementById('videoPlayer');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressContainer = document.getElementById('progressContainer');
+        const currentTimeDisplay = document.getElementById('currentTime');
+        const totalTimeDisplay = document.getElementById('totalTime');
+
+        const videos = ['sample1.mp4', 'sample2.mp4', 'sample3.mp4', 'sample4.mp4']; // Add your video files here
+        let currentVideoIndex = 0;
+
+        function loadVideo(index) {
+            videoPlayer.src = videos[index];
+            videoPlayer.load();
+            videoPlayer.play();
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        playPauseBtn.addEventListener('click', () => {
+            if (videoPlayer.paused) {
+                videoPlayer.play();
+                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                videoPlayer.pause();
+                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            currentVideoIndex = (currentVideoIndex - 1 + videos.length) % videos.length;
+            loadVideo(currentVideoIndex);
+        });
+
+        nextBtn.addEventListener('click', () => {
+            currentVideoIndex = (currentVideoIndex + 1) % videos.length;
+            loadVideo(currentVideoIndex);
+        });
+
+        videoPlayer.addEventListener('timeupdate', () => {
+            const progress = (videoPlayer.currentTime / videoPlayer.duration) * 100;
+            progressBar.style.width = `${progress}%`;
+            progressBar.setAttribute('aria-valuenow', progress);
+
+            currentTimeDisplay.textContent = formatTime(videoPlayer.currentTime);
+            totalTimeDisplay.textContent = formatTime(videoPlayer.duration);
+        });
+
+        videoPlayer.addEventListener('loadedmetadata', () => {
+            totalTimeDisplay.textContent = formatTime(videoPlayer.duration);
+        });
+
+        videoPlayer.addEventListener('ended', () => {
+            currentVideoIndex = (currentVideoIndex + 1) % videos.length;
+            loadVideo(currentVideoIndex);
+        });
+
+        progressContainer.addEventListener('click', (e) => {
+            const rect = progressContainer.getBoundingClientRect();
+            const offsetX = e.clientX - rect.left;
+            const newTime = (offsetX / rect.width) * videoPlayer.duration;
+            videoPlayer.currentTime = newTime;
+        });
+
+        // Load the first video initially
+        loadVideo(currentVideoIndex);
+    </script>
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, error => {
+                    console.log('ServiceWorker registration failed: ', error);
+                });
+        });
+    }
+</script>
+</body>
+</html>
