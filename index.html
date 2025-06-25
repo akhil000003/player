@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Two Centered Columns</title>
   <!-- Bootstrap CSS -->
    <link rel="stylesheet" href="style.css">
@@ -173,6 +173,29 @@
    }
    
     </script>
+
+<script>
+// Get the viewport meta tag
+const viewportMeta = document.querySelector('meta[name="viewport"]');
+
+// Function to disable user scaling
+function disableUserScaling() {
+if (viewportMeta) {
+viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no');
+}
+}
+
+// Function to enable user scaling
+function enableUserScaling() {
+if (viewportMeta) {
+viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1'); // Or other desired settings
+}
+}
+
+// Example usage:
+// disableUserScaling(); // Call this to disable
+ enableUserScaling();  // Call this to enable
+</script>
 
 </body>
 </html>
