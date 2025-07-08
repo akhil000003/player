@@ -75,6 +75,39 @@
       bottom: -190px;
       margin-left: -20px;
     }
+    
+ #countdownTimer {
+    color: #fff;
+    background-color: #007bff;
+    padding: 10px 15px;
+    border-radius: 8px;
+    width: fit-content;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+  }
+
+  #countdownTimer.low-time {
+    background-color: #dc3545;
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 0 10px rgba(220, 53, 69, 0.6);
+    }
+    50% {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(220, 53, 69, 0.9);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 10px rgba(220, 53, 69, 0.6);
+    }
+  }
+
+
   </style>
 
 </head>
@@ -102,7 +135,7 @@
 
     <div class="container row bottom-sticky text-center">
       <div class="col bottom-nav">
-        <div id="countdownTimer" style="font-weight: bold; margin-bottom: 10px;">Next update in: 8s</div>
+        <div id="countdownTimer">Updating in: 8s</div>
       </div>
     </div>
 
@@ -112,9 +145,16 @@
 let countdown = 8;
 const countdownElement = document.getElementById("countdownTimer");
 
+
 function updateCountdownDisplay() {
   countdownElement.textContent = `Next update in: ${countdown}s`;
+  if (countdown <= 3) {
+    countdownElement.classList.add("low-time");
+  } else {
+    countdownElement.classList.remove("low-time");
+  }
 }
+
 
 function startCountdown() {
   countdown = 8;
