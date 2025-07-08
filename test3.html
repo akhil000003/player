@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,6 +17,13 @@
       width: 100%;
       height: 100vh;
     }
+    #map-container{
+            background:aqua;
+            background-image: url(map-scale.jpg);
+            background-repeat: no-repeat;
+            opacity:1;
+            background-size: contain;
+        }
     svg {
       width: 100%;
       height: 100%;
@@ -31,6 +40,7 @@
       stroke-width: 3;
     }
     .tooltip {
+      position: absolute;
       background: #fff;
       border: 1px solid #ccc;
       padding: 5px 10px;
@@ -60,13 +70,12 @@
 <body>
   <div id="map-container">
     <svg id="metro-map" viewBox="0 0 1000 1000">
-      <!-- Purple Line -->
-      <path class="line-path purple" d="M100,500 L600,500" />
-      <!-- Green Line -->
+      <!-- Line Paths -->
+      <path class="line-path purple" d="M100,500 L600,500 L700,600 L600,610" />
       <path class="line-path green" d="M300,100 L300,800" />
 
-      <!-- Purple Line Stations -->
-      <circle class="station" cx="100" cy="500" r="10" data-name="Challaghatta" />
+      <!-- Stations -->
+      <circle class="station" cx="000" cy="500" r="10" data-name="Challaghatta" />
       <circle class="station" cx="150" cy="500" r="10" data-name="Kengeri" />
       <circle class="station" cx="200" cy="500" r="10" data-name="Vijayanagar" />
       <circle class="station interchange" cx="300" cy="500" r="12" data-name="Majestic" />
@@ -75,11 +84,8 @@
       <circle class="station" cx="450" cy="500" r="10" data-name="Indiranagar" />
       <circle class="station" cx="500" cy="500" r="10" data-name="Baiyappanahalli" />
       <circle class="station" cx="600" cy="500" r="10" data-name="Whitefield" />
-
-      <!-- Green Line Stations -->
       <circle class="station" cx="300" cy="100" r="10" data-name="Madavara" />
       <circle class="station" cx="300" cy="200" r="10" data-name="Yeshwantpur" />
-      <circle class="station interchange" cx="300" cy="500" r="12" data-name="Majestic" />
       <circle class="station" cx="300" cy="600" r="10" data-name="Chickpete" />
       <circle class="station" cx="300" cy="700" r="10" data-name="Banashankari" />
       <circle class="station" cx="300" cy="800" r="10" data-name="Silk Institute" />
@@ -91,25 +97,23 @@
     <div id="tooltip" class="tooltip"></div>
   </div>
 
-  https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js
+  <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
   <script>
     const stations = [
-      { name: "Challaghatta", x: 100, y: 500 },
-      { name: "Kengeri", x: 150, y: 500 },
-      { name: "Vijayanagar", x: 200, y: 500 },
-      { name: "Majestic", x: 300, y: 500 },
-      { name: "Cubbon Park", x: 350, y: 500 },
-      { name: "MG Road", x: 400, y: 500 },
-      { name: "Indiranagar", x: 450, y: 500 },
-      { name: "Baiyappanahalli", x: 500, y: 500 },
-      { name: "Whitefield", x: 600, y: 500 },
-      { name: "Madavara", x: 300, y: 100 },
-      { name: "Yeshwantpur", x: 300, y: 200 },
-      { name: "Chickpete", x: 300, y: 600 },
-      { name: "Banashankari", x: 300, y: 700 },
-      { name: "Silk Institute", x: 300, y: 800 },
-      { name: "RV Road", x: 400, y: 700 },
-      { name: "Bommasandra", x: 600, y: 900 }
+      { name: "Challaghatta", x: 100, y: 500, lat: 12.9200, lon: 77.4900 },
+      { name: "Kengeri", x: 150, y: 500, lat: 12.9352, lon: 77.4865 },
+      { name: "Vijayanagar", x: 200, y: 500, lat: 12.9716, lon: 77.5440 },
+      { name: "Majestic", x: 300, y: 500, lat: 12.9763, lon: 77.5726 },
+      { name: "Cubbon Park", x: 350, y: 500, lat: 12.9750, lon: 77.5950 },
+      { name: "MG Road", x: 400, y: 500, lat: 12.9756, lon: 77.6188 },
+      { name: "Indiranagar", x: 450, y: 500, lat: 12.9781, lon: 77.6408 },
+      { name: "Baiyappanahalli", x: 500, y: 500, lat: 12.9850, lon: 77.6590 },
+      { name: "Whitefield", x: 600, y: 500, lat: 12.9876, lon: 77.7289 },
+      { name: "Madavara", x: 300, y: 100, lat: 13.0500, lon: 77.5000 },
+      { name: "Yeshwantpur", x: 300, y: 200, lat: 13.0285, lon: 77.5552 },
+      { name: "Chickpete", x: 300, y: 600, lat: 12.9630, lon: 77.5800 },
+      { name: "Banashankari", x: 300, y: 700, lat: 12.9180, lon: 77.5730 },
+      { name: "Silk Institute", x: 300, y: 800, lat: 12.9000, lon: 77.5600 },
     ];
 
     const svg = document.getElementById("metro-map");
@@ -126,7 +130,6 @@
     svg.querySelectorAll(".station").forEach(station => {
       station.addEventListener("click", e => {
         const name = station.getAttribute("data-name");
-        const rect = svg.getBoundingClientRect();
         tooltip.innerText = name;
         tooltip.style.left = `${e.clientX}px`;
         tooltip.style.top = `${e.clientY}px`;
@@ -135,14 +138,22 @@
       });
     });
 
+    function haversine(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2)**2 +
+                Math.cos(lat1 * Math.PI / 180) *
+                Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2)**2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
     function findNearestStation(lat, lon) {
-      // Mock conversion: scale lat/lon to SVG coordinates
-      const x = 100 + (lon - 77.5) * 1000;
-      const y = 500 - (lat - 12.9) * 1000;
       let nearest = stations[0];
       let minDist = Infinity;
       stations.forEach(station => {
-        const dist = Math.hypot(station.x - x, station.y - y);
+        const dist = haversine(lat, lon, station.lat, station.lon);
         if (dist < minDist) {
           minDist = dist;
           nearest = station;
@@ -157,13 +168,14 @@
         const nearest = findNearestStation(latitude, longitude);
         userLocation.setAttribute("cx", nearest.x);
         userLocation.setAttribute("cy", nearest.y);
-        panZoom.zoomAtPoint(1.5, { x: nearest.x, y: nearest.y });
+        panZoom.zoomAtPoint(1, { x: nearest.x, y: nearest.y });
+        // panZoom.zoomAtPoint(1.5, { x: nearest.x, y: nearest.y });
         panZoom.center();
       });
     }
 
     updateLocation();
-    setInterval(updateLocation, 5000);
+    setInterval(updateLocation, 500000);
   </script>
 </body>
 </html>
