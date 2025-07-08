@@ -98,13 +98,51 @@
     </div>
 
 
+    
+
     <div class="container row bottom-sticky text-center">
       <div class="col bottom-nav">
-        sticky bottom
+        <div id="countdownTimer" style="font-weight: bold; margin-bottom: 10px;">Next update in: 8s</div>
       </div>
     </div>
 
   </div>
+
+<script>
+let countdown = 8;
+const countdownElement = document.getElementById("countdownTimer");
+
+function updateCountdownDisplay() {
+  countdownElement.textContent = `Next update in: ${countdown}s`;
+}
+
+function startCountdown() {
+  countdown = 8;
+  updateCountdownDisplay();
+  const interval = setInterval(() => {
+    countdown--;
+    updateCountdownDisplay();
+    if (countdown <= 0) {
+      clearInterval(interval);
+    }
+  }, 1000);
+}
+
+if (navigator.geolocation) {
+  setInterval(() => {
+    navigator.geolocation.getCurrentPosition(position => {
+      const { latitude, longitude } = position.coords;
+      snapToNearestLocation(latitude, longitude);
+    }, error => {
+      console.error("Geolocation error:", error);
+    });
+    startCountdown(); // Restart countdown after each location update
+  }, 8000);
+} else {
+  alert("Geolocation is not supported by this browser.");
+}
+</script>
+
 
 
   
