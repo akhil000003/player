@@ -147,7 +147,7 @@ const countdownElement = document.getElementById("countdownTimer");
 
 
 function updateCountdownDisplay() {
-  countdownElement.textContent = `Next update in: ${countdown}s`;
+  countdownElement.textContent = `Updating in: ${countdown}s`;
   if (countdown <= 3) {
     countdownElement.classList.add("low-time");
   } else {
