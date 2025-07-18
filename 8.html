@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hostel Finder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+    }
+    .location, .no-results {
+      text-align: center;
+      color: #555;
+    }
+    .search-bar {
+      text-align: center;
+      margin-top: 20px;
+      margin-bottom: 30px;
+    }
+    input, select, button {
+      padding: 10px;
+      margin: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .hostel-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 360px;
+    }
+    .card h3 {
+      margin-top: 0;
+    }
+    .info {
+      margin: 5px 0;
+    }
+    .stars {
+      color: #fcb103;
+      font-size: 18px;
+    }
+    .room-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    .room-table th,
+    .room-table td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: center;
+      font-size: 14px;
+    }
+    .nav-btn {
+      margin-top: 15px;
+      padding: 10px 15px;
+      background: #0078d4;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .nav-btn:hover {
+      background: #0060aa;
+    }
+    .no-results {
+      font-size: 16px;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>🏨 Hostel Finder with Filters</h2>
+<p id="user-location" class="location">Detecting location...</p>
+
+<div class="search-bar">
+  <input type="text" id="searchName" placeholder="Search name" />
+  <select id="searchGender">
+    <option value="">Any Gender</option>
+    <option value="Male">Male</option>
+    <option value="Female">Female</option>
+  </select>
+  <input type="number" id="searchMaxRent" placeholder="Max Rent ₹" />
+  <select id="searchSharing">
+    <option value="">Any Sharing</option>
+    <option value="1">1 Sharing</option>
+    <option value="2">2 Sharing</option>
+    <option value="3">3 Sharing</option>
+  </select>
+  <button onclick="applyFilters()">Search</button>
+  <button onclick="resetFilters()">Reset</button>
+</div>
+
+<div class="hostel-grid" id="hostelCards"></div>
+<p class="no-results" id="noResults" style="display:none;">No hostels matched your filters.</p>
+
+<script>
+  // 30 Sample Hostels - realistic, varied data
+  const hostels = [
+    {
+      name: "Sunrise PG",
+      gender: "Male",
+      rent: 8500,
+      deposit: 10000,
+      rating: 4.2,
+      availableRooms: 3,
+      rooms: [
+        { roomNumber: "R101", floorNumber: 1, sharing: 2, availableOccupancy: 1 },
+        { roomNumber: "R201", floorNumber: 2, sharing: 1, availableOccupancy: 1 },
+        { roomNumber: "R301", floorNumber: 3, sharing: 3, availableOccupancy: 2 }
+      ],
+      location: { lat: 28.6200, lon: 77.2100 }
+    },
+    {
+      name: "Blue Orchid Hostel",
+      gender: "Female",
+      rent: 9500,
+      deposit: 12000,
+      rating: 4.7,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "F101", floorNumber: 1, sharing: 1, availableOccupancy: 1 },
+        { roomNumber: "F102", floorNumber: 1, sharing: 2, availableOccupancy: 1 }
+      ],
+      location: { lat: 28.6255, lon: 77.2150 }
+    },
+    {
+      name: "Green View PG",
+      gender: "Male",
+      rent: 7800,
+      deposit: 10000,
+      rating: 3.8,
+      availableRooms: 1,
+      rooms: [
+        { roomNumber: "M202", floorNumber: 2, sharing: 3, availableOccupancy: 1 }
+      ],
+      location: { lat: 28.6165, lon: 77.2240 }
+    },
+    {
+      name: "Shanti Girls Hostel",
+      gender: "Female",
+      rent: 8800,
+      deposit: 11000,
+      rating: 4.6,
+      availableRooms: 4,
+      rooms: [
+        { roomNumber: "G101", floorNumber: 1, sharing: 2, availableOccupancy: 2 },
+        { roomNumber: "G102", floorNumber: 1, sharing: 2, availableOccupancy: 1 },
+        { roomNumber: "G201", floorNumber: 2, sharing: 1, availableOccupancy: 1 },
+        { roomNumber: "G301", floorNumber: 3, sharing: 3, availableOccupancy: 2 }
+      ],
+      location: { lat: 28.6180, lon: 77.2080 }
+    },
+    {
+      name: "Metro View Hostel",
+      gender: "Male",
+      rent: 7200,
+      deposit: 9500,
+      rating: 4.0,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "B101", floorNumber: 1, sharing: 1, availableOccupancy: 1 },
+        { roomNumber: "B202", floorNumber: 2, sharing: 2, availableOccupancy: 1 }
+      ],
+      location: { lat: 28.6110, lon: 77.2320 }
+    },
+    {
+      name: "Lotus Boys Hostel",
+      gender: "Male",
+      rent: 8000,
+      deposit: 10500,
+      rating: 4.3,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "L101", floorNumber: 1, sharing: 2, availableOccupancy: 1 },
+        { roomNumber: "L201", floorNumber: 2, sharing: 3, availableOccupancy: 2 }
+      ],
+      location: { lat: 28.6220, lon: 77.2200 }
+    },
+    {
+      name: "Ruby Residency",
+      gender: "Female",
+      rent: 10000,
+      deposit: 13000,
+      rating: 4.8,
+      availableRooms: 3,
+      rooms: [
+        { roomNumber: "RR101", floorNumber: 1, sharing: 1, availableOccupancy: 1 },
+        { roomNumber: "RR201", floorNumber: 2, sharing: 2, availableOccupancy: 1 },
+        { roomNumber: "RR301", floorNumber: 3, sharing: 3, availableOccupancy: 2 }
+      ],
+      location: { lat: 28.6302, lon: 77.2165 }
+    },
+    {
+      name: "Pearl Boys Hostel",
+      gender: "Male",
+      rent: 7300,
+      deposit: 9200,
+      rating: 3.9,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "P101", floorNumber: 1, sharing: 1, availableOccupancy: 1 },
+        { roomNumber: "P202", floorNumber: 2, sharing: 2, availableOccupancy: 1 }
+      ],
+      location: { lat: 28.6340, lon: 77.2201 }
+    },
+    {
+      name: "Emerald Ladies Hostel",
+      gender: "Female",
+      rent: 9000,
+      deposit: 11000,
+      rating: 4.2,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "E101", floorNumber: 1, sharing: 2, availableOccupancy: 1 },
+        { roomNumber: "E201", floorNumber: 2, sharing: 3, availableOccupancy: 2 }
+      ],
+      location: { lat: 28.6265, lon: 77.2030 }
+    },
+    {
+      name: "Saffron Residency",
+      gender: "Male",
+      rent: 9000,
+      deposit: 12000,
+      rating: 4.1,
+      availableRooms: 3,
+      rooms: [
+        { roomNumber: "S101", floorNumber: 1, sharing: 3, availableOccupancy: 2 },
+        { roomNumber: "S201", floorNumber: 2, sharing: 2, availableOccupancy: 1 },
+        { roomNumber: "S301", floorNumber: 3, sharing: 1, availableOccupancy: 1 }
+      ],
+      location: { lat: 28.6156, lon: 77.2120 }
+    },
+    {
+      name: "Harmony Ladies PG",
+      gender: "Female",
+      rent: 9200,
+      deposit: 11100,
+      rating: 4.4,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "H101", floorNumber: 1, sharing: 2, availableOccupancy: 1 },
+        { roomNumber: "H201", floorNumber: 2, sharing: 3, availableOccupancy: 1 }
+      ],
+      location: { lat: 28.6191, lon: 77.2156 }
+    },
+    {
+      name: "Vibrance Gents Hostel",
+      gender: "Male",
+      rent: 8100,
+      deposit: 9800,
+      rating: 3.6,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "V101", floorNumber: 1, sharing: 1, availableOccupancy: 1 },
+        { roomNumber: "V201", floorNumber: 2, sharing: 2, availableOccupancy: 1 }
+      ],
+      location: { lat: 28.6233, lon: 77.2099 }
+    },
+    {
+      name: "Rose Girls Hostel",
+      gender: "Female",
+      rent: 9700,
+      deposit: 12500,
+      rating: 4.5,
+      availableRooms: 3,
+      rooms: [
+        { roomNumber: "RG101", floorNumber: 1, sharing: 2, availableOccupancy: 2 },
+        { roomNumber: "RG202", floorNumber: 2, sharing: 1, availableOccupancy: 1 },
+        { roomNumber: "RG301", floorNumber: 3, sharing: 3, availableOccupancy: 2 }
+      ],
+      location: { lat: 28.6281, lon: 77.2178 }
+    },
+    {
+      name: "Jade Boy's Hostel",
+      gender: "Male",
+      rent: 7800,
+      deposit: 9500,
+      rating: 3.7,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "J101", floorNumber: 1, sharing: 2, availableOccupancy: 2 },
+        { roomNumber: "J201", floorNumber: 2, sharing: 1, availableOccupancy: 1 }
+      ],
+      location: { lat: 28.6243, lon: 77.2131 }
+    },
+    {
+      name: "Tulip Ladies Hostel",
+      gender: "Female",
+      rent: 9900,
+      deposit: 14000,
+      rating: 4.8,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "T101", floorNumber: 1, sharing: 1, availableOccupancy: 1 },
+        { roomNumber: "T201", floorNumber: 2, sharing: 2, availableOccupancy: 1 }
+      ],
+      location: { lat: 28.6290, lon: 77.2080 }
+    },
+    {
+      name: "Anchor PG",
+      gender: "Male",
+      rent: 7950,
+      deposit: 9900,
+      rating: 3.9,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "A101", floorNumber: 1, sharing: 2, availableOccupancy: 1 },
+        { roomNumber: "A201", floorNumber: 2, sharing: 3, availableOccupancy: 2 }
+      ],
+      location: { lat: 28.6208, lon: 77.2021 }
+    },
+    {
+      name: "Skyline Girls Hostel",
+      gender: "Female",
+      rent: 10100,
+      deposit: 13500,
+      rating: 4.6,
+      availableRooms: 3,
+      rooms: [
+        { roomNumber: "SGH101", floorNumber: 1, sharing: 1, availableOccupancy: 1 },
+        { roomNumber: "SGH201", floorNumber: 2, sharing: 2, availableOccupancy: 1 },
+        { roomNumber: "SGH301", floorNumber: 3, sharing: 3, availableOccupancy: 2 }
+      ],
+      location: { lat: 28.6272, lon: 77.2109 }
+    },
+    {
+      name: "Olive Boys Hostel",
+      gender: "Male",
+      rent: 8160,
+      deposit: 9800,
+      rating: 4.1,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "O101", floorNumber: 1, sharing: 3, availableOccupancy: 1 },
+        { roomNumber: "O201", floorNumber: 2, sharing: 1, availableOccupancy: 1 }
+      ],
+      location: { lat: 28.6248, lon: 77.2182 }
+    },
+    {
+      name: "Amber Ladies PG",
+      gender: "Female",
+      rent: 9400,
+      deposit: 12000,
+      rating: 4.3,
+      availableRooms: 3,
+      rooms: [
+        { roomNumber: "AL101", floorNumber: 1, sharing: 1, availableOccupancy: 1 },
+        { roomNumber: "AL202", floorNumber: 2, sharing: 2, availableOccupancy: 2 },
+        { roomNumber: "AL301", floorNumber: 3, sharing: 3, availableOccupancy: 2 }
+      ],
+      location: { lat: 28.6235, lon: 77.2145 }
+    },
+    {
+      name: "Maple Boys Hostel",
+      gender: "Male",
+      rent: 8250,
+      deposit: 9700,
+      rating: 3.5,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "M101", floorNumber: 1, sharing: 2, availableOccupancy: 2 },
+        { roomNumber: "M201", floorNumber: 2, sharing: 1, availableOccupancy: 1 }
+      ],
+      location: { lat: 28.6223, lon: 77.2213 }
+    },
+    {
+      name: "Orchid Girls Hostel",
+      gender: "Female",
+      rent: 10200,
+      deposit: 14300,
+      rating: 4.9,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "OG101", floorNumber: 1, sharing: 1, availableOccupancy: 1 },
+        { roomNumber: "OG201", floorNumber: 2, sharing: 2, availableOccupancy: 1 }
+      ],
+      location: { lat: 28.6287, lon: 77.2063 }
+    },
+    {
+      name: "Crystal Boys Hostel",
+      gender: "Male",
+      rent: 8300,
+      deposit: 9600,
+      rating: 3.6,
+      availableRooms: 3,
+      rooms: [
+        { roomNumber: "C101", floorNumber: 1, sharing: 2, availableOccupancy: 1 },
+        { roomNumber: "C201", floorNumber: 2, sharing: 3, availableOccupancy: 2 },
+        { roomNumber: "C301", floorNumber: 3, sharing: 1, availableOccupancy: 1 }
+      ],
+      location: { lat: 28.6209, lon: 77.2134 }
+    },
+    {
+      name: "Zinnia Ladies PG",
+      gender: "Female",
+      rent: 9650,
+      deposit: 12500,
+      rating: 4.5,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "Z101", floorNumber: 1, sharing: 2, availableOccupancy: 1 },
+        { roomNumber: "Z201", floorNumber: 2, sharing: 3, availableOccupancy: 2 }
+      ],
+      location: { lat: 28.6277, lon: 77.2153 }
+    },
+    {
+      name: "Bliss Men's Hostel",
+      gender: "Male",
+      rent: 7900,
+      deposit: 9500,
+      rating: 3.9,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "BM101", floorNumber: 1, sharing: 1, availableOccupancy: 1 },
+        { roomNumber: "BM201", floorNumber: 2, sharing: 3, availableOccupancy: 2 }
+      ],
+      location: { lat: 28.6250, lon: 77.2218 }
+    },
+    {
+      name: "Aster Ladies Hostel",
+      gender: "Female",
+      rent: 8800,
+      deposit: 10500,
+      rating: 4.2,
+      availableRooms: 3,
+      rooms: [
+        { roomNumber: "AS101", floorNumber: 1, sharing: 2, availableOccupancy: 1 },
+        { roomNumber: "AS201", floorNumber: 2, sharing: 1, availableOccupancy: 1 },
+        { roomNumber: "AS301", floorNumber: 3, sharing: 3, availableOccupancy: 2 }
+      ],
+      location: { lat: 28.6299, lon: 77.2171 }
+    },
+    {
+      name: "Royal Boys Hostel",
+      gender: "Male",
+      rent: 8450,
+      deposit: 9800,
+      rating: 4.0,
+      availableRooms: 3,
+      rooms: [
+        { roomNumber: "RB101", floorNumber: 1, sharing: 2, availableOccupancy: 1 },
+        { roomNumber: "RB201", floorNumber: 2, sharing: 1, availableOccupancy: 1 },
+        { roomNumber: "RB301", floorNumber: 3, sharing: 3, availableOccupancy: 2 }
+      ],
+      location: { lat: 28.6214, lon: 77.2192 }
+    },
+    {
+      name: "Serene Ladies Hostel",
+      gender: "Female",
+      rent: 9150,
+      deposit: 11700,
+      rating: 4.4,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "SL101", floorNumber: 1, sharing: 2, availableOccupancy: 2 },
+        { roomNumber: "SL201", floorNumber: 2, sharing: 1, availableOccupancy: 1 }
+      ],
+      location: { lat: 28.6281, lon: 77.2091 }
+    },
+    {
+      name: "Cedar Boys Hostel",
+      gender: "Male",
+      rent: 8050,
+      deposit: 9700,
+      rating: 3.7,
+      availableRooms: 1,
+      rooms: [
+        { roomNumber: "CB101", floorNumber: 1, sharing: 2, availableOccupancy: 1 }
+      ],
+      location: { lat: 28.6225, lon: 77.2167 }
+    },
+    {
+      name: "Opal Ladies PG",
+      gender: "Female",
+      rent: 9800,
+      deposit: 12400,
+      rating: 4.6,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "OL101", floorNumber: 1, sharing: 1, availableOccupancy: 1 },
+        { roomNumber: "OL201", floorNumber: 2, sharing: 2, availableOccupancy: 1 }
+      ],
+      location: { lat: 28.6292, lon: 77.2115 }
+    },
+    {
+      name: "Everest Boys Hostel",
+      gender: "Male",
+      rent: 8000,
+      deposit: 9500,
+      rating: 3.9,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "E101", floorNumber: 1, sharing: 3, availableOccupancy: 1 },
+        { roomNumber: "E201", floorNumber: 2, sharing: 1, availableOccupancy: 1 }
+      ],
+      location: { lat: 28.6217, lon: 77.2099 }
+    },
+    {
+      name: "Lavender Girls Hostel",
+      gender: "Female",
+      rent: 10100,
+      deposit: 13800,
+      rating: 4.8,
+      availableRooms: 3,
+      rooms: [
+        { roomNumber: "LGH101", floorNumber: 1, sharing: 2, availableOccupancy: 1 },
+        { roomNumber: "LGH201", floorNumber: 2, sharing: 3, availableOccupancy: 2 },
+        { roomNumber: "LGH301", floorNumber: 3, sharing: 1, availableOccupancy: 1 }
+      ],
+      location: { lat: 28.6267, lon: 77.2152 }
+    },
+    {
+      name: "Aspire PG",
+      gender: "Male",
+      rent: 8200,
+      deposit: 9900,
+      rating: 4.1,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "APG101", floorNumber: 1, sharing: 2, availableOccupancy: 1 },
+        { roomNumber: "APG201", floorNumber: 2, sharing: 3, availableOccupancy: 2 }
+      ],
+      location: { lat: 28.6230, lon: 77.2188 }
+    },
+    {
+      name: "Glory Ladies Hostel",
+      gender: "Female",
+      rent: 9600,
+      deposit: 12000,
+      rating: 4.3,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "GLH101", floorNumber: 1, sharing: 1, availableOccupancy: 1 },
+        { roomNumber: "GLH201", floorNumber: 2, sharing: 2, availableOccupancy: 1 }
+      ],
+      location: { lat: 28.6284, lon: 77.2102 }
+    },
+    {
+      name: "Urban Boys Hostel",
+      gender: "Male",
+      rent: 7750,
+      deposit: 9400,
+      rating: 3.7,
+      availableRooms: 3,
+      rooms: [
+        { roomNumber: "UBH101", floorNumber: 1, sharing: 2, availableOccupancy: 2 },
+        { roomNumber: "UBH201", floorNumber: 2, sharing: 1, availableOccupancy: 1 },
+        { roomNumber: "UBH301", floorNumber: 3, sharing: 3, availableOccupancy: 2 }
+      ],
+      location: { lat: 28.6261, lon: 77.2094 }
+    },
+    {
+      name: "Meadow Ladies Hostel",
+      gender: "Female",
+      rent: 9200,
+      deposit: 11500,
+      rating: 4.0,
+      availableRooms: 2,
+      rooms: [
+        { roomNumber: "MLH101", floorNumber: 1, sharing: 2, availableOccupancy: 1 },
+        { roomNumber: "MLH201", floorNumber: 2, sharing: 1, availableOccupancy: 1 }
+      ],
+      location: { lat: 28.6258, lon: 77.2114 }
+    }
+  ];
+
+  let userLat = 28.6139, userLon = 77.2090;
+
+  function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1 * Math.PI / 180) *
+              Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2)**2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return +(R * c).toFixed(2);
+  }
+
+  function getStars(rating) {
+    const fullStars = Math.floor(rating);
+    const half = rating - fullStars >= 0.5 ? "½" : "";
+    return '★'.repeat(fullStars) + half + '☆'.repeat(5 - fullStars - (half ? 1 : 0));
+  }
+
+  function applyFilters() {
+    const name = document.getElementById("searchName").value.toLowerCase();
+    const gender = document.getElementById("searchGender").value;
+    const maxRent = parseFloat(document.getElementById("searchMaxRent").value);
+    const sharingFilter = document.getElementById("searchSharing").value;
+
+    const result = hostels.map(h => ({
+      ...h,
+      distance: getDistance(userLat, userLon, h.location.lat, h.location.lon)
+    })).filter(h => {
+      const roomMatchesSharing = sharingFilter === "" || h.rooms.some(r => r.sharing == sharingFilter);
+      return h.availableRooms > 0 &&
+             (name === "" || h.name.toLowerCase().includes(name)) &&
+             (gender === "" || h.gender === gender) &&
+             (isNaN(maxRent) || h.rent <= maxRent) &&
+             roomMatchesSharing;
+    }).sort((a, b) => a.distance - b.distance);
+
+    renderHostels(result);
+  }
+
+  function openMaps(h) {
+    const url = `https://www.google.com/maps/dir/${userLat},${userLon}/${h.location.lat},${h.location.lon}`;
+    window.open(url, "_blank");
+  }
+
+  function renderHostels(list) {
+    const grid = document.getElementById("hostelCards");
+    const noResults = document.getElementById("noResults");
+    grid.innerHTML = "";
+
+    if (list.length === 0) {
+      noResults.style.display = "block";
+      return;
+    }
+    noResults.style.display = "none";
+
+    list.forEach(h => {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      card.innerHTML = `
+        <h3>${h.name}</h3>
+        <div class='info'><strong>Rating:</strong> <span class="stars">${getStars(h.rating)}</span> (${h.rating.toFixed(1)})</div>
+        <div class='info'><strong>Gender:</strong> ${h.gender}</div>
+        <div class='info'><strong>Rent:</strong> ₹${h.rent}</div>
+        <div class='info'><strong>Deposit:</strong> ₹${h.deposit}</div>
+        <div class='info'><strong>Available Rooms:</strong> ${h.availableRooms}</div>
+        <div class='info'><strong>Distance:</strong> ${h.distance} km</div>
+        <table class='room-table'>
+          <thead><tr><th>Room</th><th>Floor</th><th>Sharing</th><th>Vacant</th></tr></thead>
+          <tbody>
+            ${h.rooms.map(r => `
+              <tr>
+                <td>${r.roomNumber}</td>
+                <td>${r.floorNumber}</td>
+                <td>${r.sharing} Sharing</td>
+                <td>${r.availableOccupancy}/${r.sharing}</td>
+              </tr>`).join("")}
+          </tbody>
+        </table>
+        <button class='nav-btn'>Navigate</button>
+      `;
+      card.querySelector(".nav-btn").onclick = () => openMaps(h);
+      grid.appendChild(card);
+    });
+  }
+
+  function resetFilters() {
+    document.getElementById("searchName").value = "";
+    document.getElementById("searchGender").value = "";
+    document.getElementById("searchMaxRent").value = "";
+    document.getElementById("searchSharing").value = "";
+    applyFilters();
+  }
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        userLat = pos.coords.latitude;
+        userLon = pos.coords.longitude;
+        document.getElementById("user-location").textContent =
+          `📍 Your Location: ${userLat.toFixed(4)}, ${userLon.toFixed(4)}`;
+        applyFilters();
+      },
+      () => {
+        document.getElementById("user-location").textContent = "📍 Location denied. Using Delhi.";
+        applyFilters();
+      }
+    );
+  } else {
+    document.getElementById("user-location").textContent = "📍 Geolocation not available.";
+    applyFilters();
+  }
+
+  // Live events
+  document.getElementById("searchName").addEventListener("input", applyFilters);
+  document.getElementById("searchGender").addEventListener("change", applyFilters);
+  document.getElementById("searchMaxRent").addEventListener("input", applyFilters);
+  document.getElementById("searchSharing").addEventListener("change", applyFilters);
+</script>
+
+</body>
+</html>
