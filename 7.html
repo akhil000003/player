@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bangalore Metro: Purple & Green Line Interactive Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map { height: 80vh; width: 100%; }
+    .station-select { margin: 10px; }
+  </style>
+</head>
+<body>
+  <h2>Bangalore Metro Interactive Map (Purple & Green Lines)</h2>
+  <div class="station-select">
+    From:
+    <select id="fromStation"></select>
+    To:
+    <select id="toStation"></select>
+    <button onclick="showRoute()">Show Route</button>
+    <button onclick="locateUser()">Locate Me!</button>
+  </div>
+  <div id="map"></div>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // Sample stations data (extend for full network)
+    const stations = [
+      // Purple Line
+      { name: 'Whitefield (Kadugodi)', line: 'Purple', lat: 13.0082, lng: 77.7636 },
+      { name: 'Hopefarm Channasandra', line: 'Purple', lat: 13.0088, lng: 77.7498 },
+      { name: 'Indiranagar', line: 'Purple', lat: 12.9781, lng: 77.6408 },
+      { name: 'MG Road', line: 'Purple', lat: 12.9759, lng: 77.6071 },
+      { name: 'Majestic', line: 'Purple', lat: 12.9757, lng: 77.5728 },
+      { name: 'Challaghatta', line: 'Purple', lat: 12.9069, lng: 77.4944 },
+      // Green Line
+      { name: 'Madavara', line: 'Green', lat: 13.0574, lng: 77.4729 },
+      { name: 'Nagasandra', line: 'Green', lat: 13.0480, lng: 77.5001 },
+      { name: 'Peenya', line: 'Green', lat: 13.0507, lng: 77.5160 },
+      { name: 'Majestic', line: 'Green', lat: 12.9757, lng: 77.5728 },
+      { name: 'Jayanagar', line: 'Green', lat: 12.9257, lng: 77.5836 },
+      { name: 'Yelachenahalli', line: 'Green', lat: 12.8881, lng: 77.5736 },
+      { name: 'Silk Institute', line: 'Green', lat: 12.8341, lng: 77.5613 }
+      // Add all remaining stations with real coordinates...
+    ];
+
+    // Separate stations by line for polylines
+    const purpleStations = stations.filter(s => s.line === 'Purple');
+    const greenStations = stations.filter(s => s.line === 'Green');
+
+    // Populate dropdowns
+    function populateSelects() {
+      const fromStation = document.getElementById('fromStation');
+      const toStation = document.getElementById('toStation');
+      stations.forEach(s => {
+        let option1 = new Option(s.name, s.name);
+        let option2 = new Option(s.name, s.name);
+        fromStation.add(option1.cloneNode(true));
+        toStation.add(option2.cloneNode(true));
+      });
+      fromStation.selectedIndex = 0;
+      toStation.selectedIndex = 1;
+    }
+
+    // Initialize map
+    const map = L.map('map').setView([12.9716, 77.5946], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Draw routes and stations
+    let stationMarkers = [];
+    function drawStations() {
+      stationMarkers.forEach(m => map.removeLayer(m));
+      stationMarkers = [];
+      stations.forEach(station => {
+        let marker = L.circleMarker([station.lat, station.lng], {
+          radius: 8,
+          color: station.line === 'Purple' ? 'purple' : 'green',
+          fillOpacity: 0.8,
+          fillColor: '#fff'
+        }).addTo(map).bindPopup(`<b>${station.name}</b>`);
+        stationMarkers.push(marker);
+      });
+    }
+
+    // Draw metro lines
+    let purpleLine = L.polyline(purpleStations.map(s => [s.lat, s.lng]), {color: 'purple', weight: 5}).addTo(map);
+    let greenLine = L.polyline(greenStations.map(s => [s.lat, s.lng]), {color: 'green', weight: 5}).addTo(map);
+
+    // Highlighted route
+    let routeLayer = null;
+
+    function showRoute() {
+      const from = document.getElementById('fromStation').value;
+      const to = document.getElementById('toStation').value;
+      if (routeLayer) map.removeLayer(routeLayer);
+
+      // Find indices in stations array
+      let fromStation = stations.find(s => s.name === from);
+      let toStation = stations.find(s => s.name === to);
+
+      // Simplified: Show a polyline between the selected stations
+      if (fromStation && toStation) {
+        routeLayer = L.polyline(
+          [[fromStation.lat, fromStation.lng], [toStation.lat, toStation.lng]],
+          {color: 'blue', weight: 7, dashArray: '10,10'}
+        ).addTo(map);
+
+        map.fitBounds([
+          [fromStation.lat, fromStation.lng],
+          [toStation.lat, toStation.lng]
+        ]);
+      }
+    }
+
+    // Find nearest metro station to given lat/lng
+    function findNearestStation(lat, lng) {
+      let minDistance = Infinity, nearest = null;
+      stations.forEach(s => {
+        let distance = Math.sqrt(Math.pow(s.lat - lat, 2) + Math.pow(s.lng - lng, 2));
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearest = s;
+        }
+      });
+      return nearest;
+    }
+
+    // Mark user's location and snap to nearest station
+    let userMarker = null, snapMarker = null;
+    function locateUser() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+          let lat = position.coords.latitude;
+          let lng = position.coords.longitude;
+          if (userMarker) map.removeLayer(userMarker);
+          userMarker = L.marker([lat, lng], {title: 'Your Location'}).addTo(map)
+            .bindPopup('You are here').openPopup();
+
+          let nearestStation = findNearestStation(lat, lng);
+          if (snapMarker) map.removeLayer(snapMarker);
+          snapMarker = L.circleMarker([nearestStation.lat, nearestStation.lng], {
+            radius: 12, color: 'red', fillOpacity: 1, fillColor: 'yellow'
+          }).addTo(map).bindPopup(`Nearest Station: <b>${nearestStation.name}</b>`).openPopup();
+
+          map.setView([nearestStation.lat, nearestStation.lng], 14);
+        }, () => {
+          alert("Could not access your location.");
+        });
+      } else {
+        alert('Geolocation is not supported by your browser.');
+      }
+    }
+
+    populateSelects();
+    drawStations();
+  </script>
+</body>
+</html>
