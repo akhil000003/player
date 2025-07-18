@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bangalore Metro: Purple & Green Lines</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      background: #faf9f6;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    .station-container {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+      background: #fff;
+      box-shadow: 0 2px 24px rgba(120,24,168,0.09);
+      width: 100vw;
+      padding-bottom: 120px; /* bottom bar height */
+      height: 100vh;
+    }
+    .station-row {
+      display: flex;
+      width: 95vw;
+      min-height: 72px;
+      align-items: center;
+      margin: 8px 0;
+      z-index: 2;
+      position: relative;
+    }
+    .dot-line {
+      width: 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    .dot {
+      border: 3px solid #8e24aa;
+      border-radius: 50%;
+      height: 24px;
+      width: 24px;
+      background: #fff;
+      transition: background 0.4s, box-shadow 0.3s, border-color 0.4s;
+      box-shadow: 0 2px 7px rgba(150,70,180,0.06);
+    }
+    .station-row.green .dot {
+      border-color: #388e3c;
+    }
+    .dot.filled {
+      background: #8e24aa;
+      box-shadow: 0 0 0 5px #d1a2f5;
+      animation: pulse 1s infinite;
+    }
+    .station-row.green .dot.filled {
+      background: #388e3c;
+      box-shadow: 0 0 0 5px #99d2a7;
+      animation: pulse-green 1s infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 5px #d1a2f5; }
+      50%  { box-shadow: 0 0 0 14px #fff2; }
+      100% { box-shadow: 0 0 0 5px #d1a2f5; }
+    }
+    @keyframes pulse-green {
+      0%   { box-shadow: 0 0 0 5px #99d2a7; }
+      50%  { box-shadow: 0 0 0 14px #e8fff1; }
+      100% { box-shadow: 0 0 0 5px #99d2a7; }
+    }
+    .station-details.left {
+      justify-content: flex-end;
+      margin-right: 15px;
+      text-align: right;
+    }
+    .station-details.right {
+      justify-content: flex-start;
+      margin-left: 15px;
+      text-align: left;
+    }
+    .station-details {
+      flex: 1.8;
+      display: flex;
+      flex-direction: column;
+      font-size: 1rem;
+      color: #4a2d58;
+      line-height: 1.35;
+      font-weight: 400;
+    }
+    .station-row.green .station-details {
+      color: #184e31;
+    }
+    .station-name {
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: 0.01rem;
+      margin-bottom: 0.29rem;
+    }
+    .station-latlong {
+      font-size: 0.94rem;
+      color: #7859a6;
+    }
+    .station-row.green .station-latlong {
+      color: #388e3c;
+      opacity: 0.86;
+    }
+    .station-row.active .station-name {
+      color: #c078f6;
+    }
+    .station-row.green.active .station-name {
+      color: #30c767;
+    }
+    .connector {
+      width: 4px;
+      flex: 1 1 auto;
+      background-image: repeating-linear-gradient(#8e24aa 0 4px, #fff0 4px 10px);
+      margin: 0 auto;
+    }
+    .station-row.green .connector {
+      background-image: repeating-linear-gradient(#388e3c 0 4px, #fff0 4px 10px);
+    }
+    /* Bottom bar styles */
+    .bottom-bar {
+      position: fixed;
+      width: 100vw;
+      left: 0;
+      bottom: 0;
+      background: #f5eafe;
+      border-top: 2.5px solid #e0d0ea;
+      box-shadow: 0 -1px 15px 0 rgba(138, 24, 168, 0.09);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 100;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+    .bottom-title {
+      padding-top: 14px;
+      padding-bottom: 2px;
+      font-size: 1.18rem;
+      font-weight: bold;
+      color: #8e24aa;
+      text-align: center;
+      letter-spacing: 0.03em;
+      line-height: 1.2;
+    }
+    .tabs {
+      width: 100vw;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      border-radius: 0;
+      padding-bottom: 15px;
+      padding-top: 7px;
+      background: transparent;
+    }
+    .tab-btn {
+      background: #eee;
+      border: 0;
+      border-radius: 16px 16px 16px 16px;
+      font-size: 1.11rem;
+      padding: 7px 26px;
+      color: #666;
+      cursor: pointer;
+      font-weight: 500;
+      outline: none;
+      margin-top: 4px;
+      transition: background .2s, color .2s;
+    }
+    .tab-btn.active {
+      color: #fff;
+      background: #8e24aa;
+      font-weight: 600;
+    }
+    .tab-btn.green.active {
+      background: #388e3c;
+    }
+    @media (max-width: 600px) {
+      .station-row { min-height: 61px; }
+      .station-name { font-size: 1.02rem; }
+      .bottom-title { font-size: 1.01rem;}
+      .tab-btn { font-size: 0.97rem;}
+    }
+  </style>
+</head>
+<body>
+  <div class="station-container" id="station-container">
+    <div class="station-list" id="metro-list"></div>
+  </div>
+  <div class="bottom-bar">
+    <div class="bottom-title">Bangalore Metro: Purple &amp; Green Lines</div>
+    <div class="tabs">
+      <button id="purpleTab" class="tab-btn active">Purple Line</button>
+      <button id="greenTab" class="tab-btn green">Green Line</button>
+    </div>
+  </div>
+  <script>
+    // Station data as before
+    const purpleStations = [
+      { name: "Challaghatta", lat: 12.9251, lng: 77.4926, align: "right" },
+      { name: "Kengeri", lat: 12.9137, lng: 77.4837, align: "left" },
+      { name: "Kengeri Bus Terminal", lat: 12.9084, lng: 77.4842, align: "right" },
+      { name: "Pattanagere", lat: 12.8997, lng: 77.4945, align: "left" },
+      { name: "Jnanabharathi", lat: 12.9159, lng: 77.5062, align: "right" },
+      { name: "Rajarajeshwari Nagar", lat: 12.9259, lng: 77.5197, align: "left" },
+      { name: "Nayandahalli", lat: 12.9268, lng: 77.5340, align: "right" },
+      { name: "Mysore Road", lat: 12.9427, lng: 77.5360, align: "left" },
+      { name: "Deepanjali Nagar", lat: 12.9506, lng: 77.5391, align: "right" },
+      { name: "Attiguppe", lat: 12.9587, lng: 77.5416, align: "left" },
+      { name: "Vijayanagar", lat: 12.9679, lng: 77.5496, align: "right" },
+      { name: "Hosahalli", lat: 12.9745, lng: 77.5542, align: "left" },
+      { name: "Magadi Road", lat: 12.9780, lng: 77.5606, align: "right" },
+      { name: "Sir M. Visvesvaraya", lat: 12.9741, lng: 77.5725, align: "left" },
+      { name: "Nadaprabhu Kempegowda (Majestic)", lat: 12.9763, lng: 77.5712, align: "right" },
+      { name: "City Railway Station", lat: 12.9783, lng: 77.5732, align: "left" },
+      { name: "Sir M. Visveswaraya (Central College)", lat: 12.9792, lng: 77.5910, align: "right" },
+      { name: "MG Road", lat: 12.9766, lng: 77.6033, align: "left" },
+      { name: "Trinity", lat: 12.9719, lng: 77.6169, align: "right" },
+      { name: "Halasuru", lat: 12.9782, lng: 77.6408, align: "left" },
+      { name: "Indiranagar", lat: 12.9961, lng: 77.6406, align: "right" },
+      { name: "Swami Vivekananda Road", lat: 12.9938, lng: 77.6516, align: "left" },
+      { name: "Baiyappanahalli", lat: 13.0084, lng: 77.6635, align: "right" }
+    ];
+    const greenStations = [
+      { name: "Silk Institute", lat: 12.8662, lng: 77.5641, align: "right" },
+      { name: "Doddakallasandra", lat: 12.8850, lng: 77.5677, align: "left" },
+      { name: "Vajarahalli", lat: 12.8953, lng: 77.5694, align: "right" },
+      { name: "Thalaghattapura", lat: 12.9059, lng: 77.5757, align: "left" },
+      { name: "Konanakunte Cross", lat: 12.9111, lng: 77.5802, align: "right" },
+      { name: "Yelachenahalli", lat: 12.9185, lng: 77.5837, align: "left" },
+      { name: "Jaya Prakash Nagar", lat: 12.9245, lng: 77.5838, align: "right" },
+      { name: "Rashtreeya Vidyalaya Road", lat: 12.9306, lng: 77.5836, align: "left" },
+      { name: "Banashankari", lat: 12.9356, lng: 77.5807, align: "right" },
+      { name: "Jayanagar", lat: 12.9411, lng: 77.5792, align: "left" },
+      { name: "South End Circle", lat: 12.9454, lng: 77.5783, align: "right" },
+      { name: "Lalbagh", lat: 12.9530, lng: 77.5812, align: "left" },
+      { name: "National College", lat: 12.9502, lng: 77.5741, align: "right" },
+      { name: "Krishna Rajendra Market", lat: 12.9627, lng: 77.5741, align: "left" },
+      { name: "Chickpet", lat: 12.9702, lng: 77.5749, align: "right" },
+      { name: "Kempegowda Majestic", lat: 12.9763, lng: 77.5712, align: "left" },
+      { name: "Mantri Square Sampige Road", lat: 12.9917, lng: 77.5700, align: "right" },
+      { name: "Srirampura", lat: 13.0034, lng: 77.5670, align: "left" },
+      { name: "Sandal Soap Factory", lat: 13.0153, lng: 77.5553, align: "right" },
+      { name: "Mahalakshmi", lat: 13.0226, lng: 77.5537, align: "left" },
+      { name: "Rajajinagar", lat: 13.0288, lng: 77.5501, align: "right" },
+      { name: "Kuvempu Road", lat: 13.0367, lng: 77.5458, align: "left" },
+      { name: "Srirampura", lat: 13.0463, lng: 77.5426, align: "right" },
+      { name: "Yeshwanthpur", lat: 13.0324, lng: 77.5551, align: "left" },
+      { name: "Goraguntepalya", lat: 13.0403, lng: 77.5360, align: "right" },
+      { name: "Peenya", lat: 13.0464, lng: 77.5282, align: "left" },
+      { name: "Peenya Industry", lat: 13.0466, lng: 77.5206, align: "right" },
+      { name: "Jalahalli", lat: 13.0571, lng: 77.5115, align: "left" },
+      { name: "Dasarahalli", lat: 13.0623, lng: 77.5048, align: "right" },
+      { name: "Nagasandra", lat: 13.0735, lng: 77.4996, align: "left" }
+    ];
+    let currentLine = "purple";
+    const lineStations = { purple: purpleStations, green: greenStations };
+    const lineClasses = { purple: "", green: "green" };
+
+    function dist2(a, b) {
+      return Math.pow(a.lat - b.lat, 2) + Math.pow(a.lng - b.lng, 2);
+    }
+    function renderStations(activeIdx = -1) {
+      const data = lineStations[currentLine], cLine = lineClasses[currentLine];
+      const node = document.getElementById("metro-list");
+      node.innerHTML = "";
+      // Reverse rendering for bottom-to-top display
+      for(let i = data.length-1; i >= 0; --i) {
+        let st = data[i], active = (i === activeIdx);
+        const details = `<div class="station-details ${st.align}">
+          <div class="station-name">${st.name}</div>
+          <div class="station-latlong">Lat: ${st.lat} | Lng: ${st.lng}</div>
+        </div>`;
+        let up = (i < data.length-1) ? '<div class="connector"></div>' : '';
+        let down = (i > 0) ? '<div class="connector"></div>' : '';
+        node.innerHTML += `
+          <div class="station-row${active ? ' active' : ''} ${cLine}">
+            ${st.align==='left'?details:""}
+            <div class="dot-line">${up}
+              <div class="dot${active?' filled':''}"></div>
+            ${down}</div>
+            ${st.align==='right'?details:""}
+          </div>`;
+      }
+    }
+    // Geolocation & snapping logic
+    function locateAndSnap() {
+      if(!navigator.geolocation) { renderStations(-1); return; }
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          let user = {lat: pos.coords.latitude, lng: pos.coords.longitude};
+          let dBest = 1e6, minIdx = -1;
+          lineStations[currentLine].forEach((s,i) => {
+            let d = dist2(user,s);
+            if(d < dBest) { dBest = d; minIdx = i; }
+          });
+          renderStations(minIdx);
+          const rows = document.querySelectorAll('.station-row');
+          // Map list index to DOM index: reversed
+          let domIdx = (lineStations[currentLine].length-1) - minIdx;
+          if(rows[domIdx]) rows[domIdx].scrollIntoView({behavior:'smooth', block:'center'});
+        },
+        err => { renderStations(-1); }
+      );
+    }
+    // Tab event listeners
+    document.getElementById("purpleTab").onclick = function(){
+      currentLine = "purple";
+      this.classList.add("active");
+      document.getElementById("greenTab").classList.remove("active");
+      renderStations(-1);
+      locateAndSnap();
+    };
+    document.getElementById("greenTab").onclick = function(){
+      currentLine = "green";
+      this.classList.add("active");
+      document.getElementById("purpleTab").classList.remove("active");
+      renderStations(-1);
+      locateAndSnap();
+    };
+    // Init
+    renderStations(-1);
+    locateAndSnap();
+    setInterval(locateAndSnap, 5000);
+  </script>
+</body>
+</html>
