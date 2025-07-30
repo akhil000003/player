@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Web PTT Prototype</title>
+  <style>
+    body { font: 1.2em sans-serif; margin:2em; }
+    #talk { font-size:1.4em; margin:1em; padding:1em 2em; }
+    #status { font-weight:bold; margin:1em 0; }
+    input, button { font-size:1em; padding:0.5em; }
+  </style>
+</head>
+<body>
+  <h2>Push-to-Talk Web App</h2>
+  <div>
+    <button id="create">Create New ID</button>
+    <input id="room" placeholder="Enter ID">
+    <button id="connect">Connect</button>
+  </div>
+  <div id="status">Not connected</div>
+  <button id="talk" disabled>Press and Talk</button>
+  <audio id="remoteAudio" autoplay></audio>
+  <script src="https://unpkg.com/simple-peer@9.11.1/simplepeer.min.js"></script>
+  <script>
+    // --- Config: Use a free signaling relay (only for demo!) ---
+    const SIGNAL_SERVER = "wss://signal-rtc.perplexity.workers.dev"; // for demo
+    // --- UI elements ---
+    const createBtn = document.getElementById('create');
+    const connectBtn = document.getElementById('connect');
+    const roomInput = document.getElementById('room');
+    const talkBtn = document.getElementById('talk');
+    const status = document.getElementById('status');
+    const remoteAudio = document.getElementById('remoteAudio');
+    // --- State ---
+    let socket, peer, localStream, currentRoom = "";
+    let initiator = false;
+    // --- Room ID generator ---
+    createBtn.onclick = () => {
+      const id = Math.random().toString(36).substr(2, 8).toUpperCase();
+      roomInput.value = id;
+      status.textContent = `Created ID: ${id}. Share with friend!`;
+    };
+    // --- Connect logic ---
+    connectBtn.onclick = () => {
+      if(!roomInput.value) { alert("Enter or create room ID"); return; }
+      currentRoom = roomInput.value.trim().toUpperCase();
+      status.textContent = `Connecting to ${currentRoom}...`;
+      setupSocket();
+    };
+    // --- Socket signaling using websocket ---
+    function setupSocket() {
+      socket = new WebSocket(SIGNAL_SERVER);
+      socket.onopen = () => {
+        socket.send(JSON.stringify({join:currentRoom}));
+        status.textContent = "Connected to signaling server. Waiting for peer...";
+      };
+      socket.onmessage = async e => {
+        const msg = JSON.parse(e.data);
+        // Grant initiator role to first user
+        if (msg.role && msg.role==="initiator") initiator = true;
+        if (msg.signal) peer.signal(msg.signal);
+      };
+      socket.onclose = () => status.textContent = "Connection closed";
+      setupPeer();
+    }
+    // --- Setup SimplePeer for WebRTC ---
+    function setupPeer() {
+      peer = new SimplePeer({initiator, trickle:false, stream:null});
+      peer.on('signal', data => {
+        socket.send(JSON.stringify({signal:data, room:currentRoom}));
+      });
+      peer.on('connect', () => {
+        status.textContent = "Connected and ready to talk!";
+        talkBtn.disabled = false;
+      });
+      peer.on('stream', stream => { // play incoming audio
+        remoteAudio.srcObject = stream;
+      });
+    }
+    // --- Push-to-talk: Send/release microphone ---
+    talkBtn.onmousedown = talkBtn.ontouchstart = async () => {
+      if (!navigator.mediaDevices) return alert("No media available");
+      localStream = await navigator.mediaDevices.getUserMedia({audio:true});
+      localStream.getAudioTracks()[0].enabled = true;
+      peer.replaceTrack(null, localStream.getAudioTracks()[0], peer.streams[0]);
+      status.textContent = "You are talking...";
+    };
+    talkBtn.onmouseup = talkBtn.ontouchend = () => {
+      if (localStream) {
+        localStream.getTracks().forEach(tr => tr.stop());
+        peer.replaceTrack(localStream.getAudioTracks()[0], null, peer.streams[0]);
+      }
+      status.textContent = "Ready to talk";
+    };
+    // Optional: auto clean up on close
+    window.onbeforeunload = () => { if (peer) peer.destroy(); if (socket) socket.close(); };
+  </script>
+</body>
+</html>
